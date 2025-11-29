@@ -1,13 +1,12 @@
 #include "raylib.h"
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 #define ScreenHeight 500
 #define ScreenWidth 600
-#define BALL_RADIUS 40
-#define NumberOFBall 10
+#define BALL_RADIUS 15
+#define NumberOFBall 1000
 #define BG_COLOR RED
 
 int rand_sign() { return rand() % 2 == 0 ? -1 : 1; }
@@ -17,20 +16,24 @@ typedef struct ball {
   Vector2 velocity;
 } Ball;
 
-typedef struct {
-  int x;
-  int y;
-  int width;
-  int height;
-} Rect;
-
-int inside_rect(int x, int y, int width, int height, Ball ball,
+// return 0 if no collision
+// return 1 if up or down collision
+// return 2 if left or right collision
+int inside_rect(Rectangle rect, Ball current_ball, Ball prev_ball,
                 int ball_radius) {
-  if (ball.position.x + ball_radius > x &&
-      ball.position.x - ball_radius < width + x &&
-      ball.position.y + ball_radius > y &&
-      ball.position.y - ball_radius < height + y) {
-    return 1;
+  bool is_collide =
+      CheckCollisionCircleRec(current_ball.position, ball_radius, rect);
+
+  if (prev_ball.position.y + ball_radius > rect.y &&
+      prev_ball.position.y < rect.y + rect.height) {
+
+    if (is_collide) {
+      return 2;
+    }
+  } else {
+    if (is_collide) {
+      return 1;
+    }
   }
 
   return 0;
@@ -41,12 +44,12 @@ int main(void) {
   Vector2 gravity = {0.0f, 980.0f};
   Ball Balls[NumberOFBall];
   Color colors[NumberOFBall];
-  Rect rect = {160, 300, 100, 100};
+  Rectangle rect[2] = {{160, 330, 100, 100}, {300, 330, 100, 100}};
 
   for (int i = 0; i < NumberOFBall; i++) {
     colors[i] = ColorFromHSV((float)(rand() % 360), 1, 20);
-    Balls[i].position = (Vector2){(float)(rand() % (ScreenWidth - 50)),
-                                  (float)(rand() % (ScreenHeight - 50))};
+    Balls[i].position =
+        (Vector2){(float)(rand() % (ScreenWidth)), (float)(rand() % (100))};
     Balls[i].velocity = (Vector2){(float)(rand_sign() * rand() % 90), 0.0f};
   }
 
@@ -56,25 +59,39 @@ int main(void) {
     float dt = GetFrameTime();
     float floorY = (float)ScreenHeight - BALL_RADIUS;
     for (int i = 0; i < NumberOFBall; i++) {
+      Ball prev_ball = Balls[i];
       Balls[i].velocity.y += gravity.y * dt;
       Balls[i].position.y += Balls[i].velocity.y * dt;
       Balls[i].position.x += Balls[i].velocity.x * dt;
       float currentBallRadius = BALL_RADIUS;
       if (Balls[i].position.y >= (float)ScreenHeight - currentBallRadius) {
         Balls[i].position.y = (float)ScreenHeight - currentBallRadius;
-        Balls[i].velocity.y *= -0.95f;
+        Balls[i].velocity.y *= -0.97f;
       }
       if (Balls[i].position.x >= (float)ScreenWidth - currentBallRadius) {
         Balls[i].position.x = (float)ScreenWidth - currentBallRadius;
-        Balls[i].velocity.x *= -0.90f;
+        Balls[i].velocity.x *= -0.96f;
       } else if (Balls[i].position.x <= currentBallRadius) {
         Balls[i].position.x = currentBallRadius;
-        Balls[i].velocity.x *= -0.90f;
+        Balls[i].velocity.x *= -0.95f;
       }
-
-      if (inside_rect(rect.x, rect.y, rect.width, rect.height, Balls[i],
-                      BALL_RADIUS)) {
-        Balls[i].velocity.y *= -0.90f;
+      for (int j = 0; j < 2; j++) {
+        if (inside_rect(rect[j], Balls[i], prev_ball, BALL_RADIUS) == 1) {
+          Balls[i].velocity.y *= -0.90f;
+          if (Balls[i].position.y < rect[j].y) {
+            Balls[i].position.y = rect[j].y - BALL_RADIUS;
+          } else {
+            Balls[i].position.y = rect[j].y + rect[j].height + BALL_RADIUS;
+          }
+        }
+        if (inside_rect(rect[j], Balls[i], prev_ball, BALL_RADIUS) == 2) {
+          Balls[i].velocity.x *= -0.90f;
+          if (Balls[i].position.x < rect[j].x + rect[j].width / 2) {
+            Balls[i].position.x = rect[j].x - BALL_RADIUS;
+          } else {
+            Balls[i].position.x = rect[j].x + rect[j].width + BALL_RADIUS;
+          }
+        }
       }
     }
 
@@ -87,7 +104,9 @@ int main(void) {
       DrawCircle((int)Balls[i].position.x, (int)Balls[i].position.y,
                  BALL_RADIUS, colors[i]);
     }
-    DrawRectangle(rect.x, rect.y, rect.width, rect.height, BLACK);
+    for (int i = 0; i < 2; i++) {
+      DrawRectangle(rect[i].x, rect[i].y, rect[i].width, rect[i].height, BLACK);
+    }
     EndDrawing();
   }
 
