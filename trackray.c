@@ -5,8 +5,8 @@
 
 #define ScreenHeight 500
 #define ScreenWidth 600
-#define BALL_RADIUS 15
-#define NumberOFBall 1000
+#define BALL_RADIUS 10
+#define NumberOFBall 10000
 #define BG_COLOR RED
 
 int rand_sign() { return rand() % 2 == 0 ? -1 : 1; }
@@ -23,17 +23,13 @@ int inside_rect(Rectangle rect, Ball current_ball, Ball prev_ball,
                 int ball_radius) {
   bool is_collide =
       CheckCollisionCircleRec(current_ball.position, ball_radius, rect);
-
   if (prev_ball.position.y + ball_radius > rect.y &&
       prev_ball.position.y < rect.y + rect.height) {
-
-    if (is_collide) {
+    if (is_collide)
       return 2;
-    }
   } else {
-    if (is_collide) {
+    if (is_collide)
       return 1;
-    }
   }
 
   return 0;
@@ -44,10 +40,13 @@ int main(void) {
   Vector2 gravity = {0.0f, 980.0f};
   Ball Balls[NumberOFBall];
   Color colors[NumberOFBall];
-  Rectangle rect[2] = {{160, 330, 100, 100}, {300, 330, 100, 100}};
+  Rectangle rect[10] = {
+      {160, 400, 50, 50}, {400, 400, 50, 50}, {100, 200, 50, 50},
+      {200, 250, 50, 50}, {300, 200, 50, 50}, {400, 200, 50, 50},
+      {400, 400, 50, 50}, {100, 300, 50, 50}, {300, 400, 50, 50}};
 
   for (int i = 0; i < NumberOFBall; i++) {
-    colors[i] = ColorFromHSV((float)(rand() % 360), 1, 20);
+    colors[i] = ColorFromHSV((float)(rand() % 360), 60, 40);
     Balls[i].position =
         (Vector2){(float)(rand() % (ScreenWidth)), (float)(rand() % (100))};
     Balls[i].velocity = (Vector2){(float)(rand_sign() * rand() % 90), 0.0f};
@@ -75,7 +74,7 @@ int main(void) {
         Balls[i].position.x = currentBallRadius;
         Balls[i].velocity.x *= -0.95f;
       }
-      for (int j = 0; j < 2; j++) {
+      for (int j = 0; j < 10; j++) {
         if (inside_rect(rect[j], Balls[i], prev_ball, BALL_RADIUS) == 1) {
           Balls[i].velocity.y *= -0.90f;
           if (Balls[i].position.y < rect[j].y) {
@@ -104,7 +103,7 @@ int main(void) {
       DrawCircle((int)Balls[i].position.x, (int)Balls[i].position.y,
                  BALL_RADIUS, colors[i]);
     }
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 10; i++) {
       DrawRectangle(rect[i].x, rect[i].y, rect[i].width, rect[i].height, BLACK);
     }
     EndDrawing();
