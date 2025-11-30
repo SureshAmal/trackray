@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define ScreenHeight 500
+#define ScreenHeight 600
 #define ScreenWidth 600
-#define BALL_RADIUS 10
-#define NumberOFBall 10000
+#define BALL_RADIUS 12
+#define NumberOFBall 3000
 #define BG_COLOR RED
 
 int rand_sign() { return rand() % 2 == 0 ? -1 : 1; }
@@ -40,10 +40,18 @@ int main(void) {
   Vector2 gravity = {0.0f, 980.0f};
   Ball Balls[NumberOFBall];
   Color colors[NumberOFBall];
-  Rectangle rect[10] = {
-      {160, 400, 50, 50}, {400, 400, 50, 50}, {100, 200, 50, 50},
-      {200, 250, 50, 50}, {300, 200, 50, 50}, {400, 200, 50, 50},
-      {400, 400, 50, 50}, {100, 300, 50, 50}, {300, 400, 50, 50}};
+  Rectangle rect[30] = {0};
+  int k = 0;
+  for (int i = 0; i < 4; i++) {
+    int offset = (i % 2 == 0) ? 100 : 50;
+    for (int j = 0; j < 5; j++) {
+      rect[k].x = offset + j * 100;
+      rect[k].y = 200 + i * 100;
+      rect[k].width = 50.0f;
+      rect[k].height = 50.0f;
+      k++;
+    }
+  }
 
   for (int i = 0; i < NumberOFBall; i++) {
     colors[i] = ColorFromHSV((float)(rand() % 360), 60, 40);
@@ -74,7 +82,7 @@ int main(void) {
         Balls[i].position.x = currentBallRadius;
         Balls[i].velocity.x *= -0.95f;
       }
-      for (int j = 0; j < 10; j++) {
+      for (int j = 0; j < 20; j++) {
         if (inside_rect(rect[j], Balls[i], prev_ball, BALL_RADIUS) == 1) {
           Balls[i].velocity.y *= -0.90f;
           if (Balls[i].position.y < rect[j].y) {
@@ -103,7 +111,7 @@ int main(void) {
       DrawCircle((int)Balls[i].position.x, (int)Balls[i].position.y,
                  BALL_RADIUS, colors[i]);
     }
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 20; i++) {
       DrawRectangle(rect[i].x, rect[i].y, rect[i].width, rect[i].height, BLACK);
     }
     EndDrawing();
